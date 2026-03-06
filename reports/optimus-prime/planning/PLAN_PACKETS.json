@@ -1,0 +1,418 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-03-06T13:30:00Z",
+  "plan_id": "plan-20260306T133000Z",
+  "phase": "multi-phase",
+  "phases": [
+    {
+      "phase_id": "phase-1",
+      "task_ids": [
+        "TASK-001",
+        "TASK-002",
+        "TASK-003"
+      ],
+      "depends_on_phase_ids": [],
+      "entry_criteria": [
+        "phase_dependencies_done"
+      ],
+      "exit_criteria": [
+        "all_tasks_review_done",
+        "verify_commands_passed",
+        "uat_matrix_passed",
+        "zero_open_gaps"
+      ]
+    },
+    {
+      "phase_id": "phase-2",
+      "task_ids": [
+        "TASK-004",
+        "TASK-005"
+      ],
+      "depends_on_phase_ids": [
+        "phase-1"
+      ],
+      "entry_criteria": [
+        "phase_dependencies_done"
+      ],
+      "exit_criteria": [
+        "all_tasks_review_done",
+        "verify_commands_passed",
+        "uat_matrix_passed",
+        "zero_open_gaps"
+      ]
+    },
+    {
+      "phase_id": "phase-3",
+      "task_ids": [
+        "TASK-006"
+      ],
+      "depends_on_phase_ids": [
+        "phase-2"
+      ],
+      "entry_criteria": [
+        "phase_dependencies_done"
+      ],
+      "exit_criteria": [
+        "all_tasks_review_done",
+        "verify_commands_passed",
+        "uat_matrix_passed",
+        "zero_open_gaps"
+      ]
+    },
+    {
+      "phase_id": "phase-4",
+      "task_ids": [
+        "TASK-007",
+        "TASK-008"
+      ],
+      "depends_on_phase_ids": [
+        "phase-3"
+      ],
+      "entry_criteria": [
+        "phase_dependencies_done"
+      ],
+      "exit_criteria": [
+        "all_tasks_review_done",
+        "verify_commands_passed",
+        "uat_matrix_passed",
+        "zero_open_gaps"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "title": "Deliver deterministic core gameplay loop and board state management",
+      "acceptance_criteria": [
+        "The game loop updates board state deterministically using fixed tick timing.",
+        "Piece spawn, gravity, lock, and game-over rules are covered by executable tests."
+      ],
+      "verify_commands": [
+        "npm run test:unit -- --run tests/unit/gameplay-loop.spec.ts"
+      ]
+    },
+    {
+      "id": "REQ-002",
+      "title": "Implement player controls, scoring, line clear logic, and hold/next rules",
+      "acceptance_criteria": [
+        "Keyboard controls cover move, rotate, soft drop, hard drop, and pause/resume.",
+        "Scoring, level progression, line clear behavior, and hold/next constraints follow documented rules."
+      ],
+      "verify_commands": [
+        "npm run test:unit -- --run tests/unit/rules-scoring.spec.ts"
+      ]
+    },
+    {
+      "id": "REQ-003",
+      "title": "Deliver web UI integration for gameplay and HUD",
+      "acceptance_criteria": [
+        "Board rendering and HUD show score, level, lines, hold piece, and next queue.",
+        "UI integration preserves deterministic behavior between input handlers and game state."
+      ],
+      "verify_commands": [
+        "npm run test:unit -- --run tests/unit/ui-integration.spec.ts"
+      ]
+    },
+    {
+      "id": "REQ-004",
+      "title": "Operationalize verification, UAT coverage, and release hardening",
+      "acceptance_criteria": [
+        "Unit, integration, and end-to-end verification commands run deterministically.",
+        "UAT scenarios for gameplay-critical flows are encoded and reproducible."
+      ],
+      "verify_commands": [
+        "npm run lint",
+        "npm run test:unit -- --run",
+        "npm run test:e2e -- --project=chromium"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "TASK-001",
+      "title": "TDD: seed failing gameplay-loop contract tests for tick, spawn, lock, and game-over",
+      "phase_id": "phase-1",
+      "lane_id": "phase-1/lane-a",
+      "status": "pending",
+      "requirement_ids": [
+        "REQ-001"
+      ],
+      "depends_on": [],
+      "must_haves": [
+        "Tests encode deterministic tick progression and piece lifecycle assertions.",
+        "The suite fails against the current empty implementation baseline."
+      ],
+      "verify_commands": [
+        "npm run test:unit -- --run tests/unit/gameplay-loop.spec.ts"
+      ],
+      "gaps_that_need_patching": [],
+      "verification_contract": {
+        "mode": "tdd_red",
+        "dev_expectation": "expect_fail",
+        "test_expectation": "expect_fail",
+        "review_expectation": "expect_fail",
+        "expected_failure_reason_codes": [
+          "tdd_expected_failure_observed"
+        ],
+        "infra_failure_reason_codes": [
+          "verification_environment_error",
+          "verification_command_target_missing"
+        ]
+      }
+    },
+    {
+      "task_id": "TASK-002",
+      "title": "TDD: seed failing rules tests for controls, scoring, line clear behavior, and hold/next",
+      "phase_id": "phase-1",
+      "lane_id": "phase-1/lane-b",
+      "status": "pending",
+      "requirement_ids": [
+        "REQ-002"
+      ],
+      "depends_on": [],
+      "must_haves": [
+        "Rule tests cover movement, rotation, soft/hard drop, and pause control semantics.",
+        "Scoring and hold/next constraints fail before gameplay rules are implemented."
+      ],
+      "verify_commands": [
+        "npm run test:unit -- --run tests/unit/rules-scoring.spec.ts"
+      ],
+      "gaps_that_need_patching": [],
+      "verification_contract": {
+        "mode": "tdd_red",
+        "dev_expectation": "expect_fail",
+        "test_expectation": "expect_fail",
+        "review_expectation": "expect_fail",
+        "expected_failure_reason_codes": [
+          "tdd_expected_failure_observed"
+        ],
+        "infra_failure_reason_codes": [
+          "verification_environment_error",
+          "verification_command_target_missing"
+        ]
+      }
+    },
+    {
+      "task_id": "TASK-003",
+      "title": "TDD: seed failing UI integration tests for board rendering, HUD, and input wiring",
+      "phase_id": "phase-1",
+      "lane_id": "phase-1/lane-c",
+      "status": "pending",
+      "requirement_ids": [
+        "REQ-003"
+      ],
+      "depends_on": [],
+      "must_haves": [
+        "Tests assert rendering of board grid, next queue, hold slot, and scoreboard fields.",
+        "Input-to-state wiring fails until UI and loop integration are implemented."
+      ],
+      "verify_commands": [
+        "npm run test:unit -- --run tests/unit/ui-integration.spec.ts"
+      ],
+      "gaps_that_need_patching": [],
+      "verification_contract": {
+        "mode": "tdd_red",
+        "dev_expectation": "expect_fail",
+        "test_expectation": "expect_fail",
+        "review_expectation": "expect_fail",
+        "expected_failure_reason_codes": [
+          "tdd_expected_failure_observed"
+        ],
+        "infra_failure_reason_codes": [
+          "verification_environment_error",
+          "verification_command_target_missing"
+        ]
+      }
+    },
+    {
+      "task_id": "TASK-004",
+      "title": "Implement deterministic gameplay loop and board model to satisfy gameplay-loop contract",
+      "phase_id": "phase-2",
+      "lane_id": "phase-2/lane-a",
+      "status": "pending",
+      "requirement_ids": [
+        "REQ-001"
+      ],
+      "depends_on": [
+        "TASK-001"
+      ],
+      "must_haves": [
+        "Core game state machine passes tick/spawn/lock/game-over contract tests.",
+        "Board and piece state transitions are pure and reproducible for test replay."
+      ],
+      "verify_commands": [
+        "npm run test:unit -- --run tests/unit/gameplay-loop.spec.ts"
+      ],
+      "gaps_that_need_patching": [],
+      "verification_contract": {
+        "mode": "implementation_green",
+        "dev_expectation": "expect_pass",
+        "test_expectation": "expect_pass",
+        "review_expectation": "expect_pass",
+        "expected_failure_reason_codes": [
+          "regression_detected"
+        ],
+        "infra_failure_reason_codes": [
+          "verification_environment_error",
+          "verification_command_target_missing"
+        ]
+      }
+    },
+    {
+      "task_id": "TASK-005",
+      "title": "Implement movement, scoring, line clear, and hold/next rule engine",
+      "phase_id": "phase-2",
+      "lane_id": "phase-2/lane-b",
+      "status": "pending",
+      "requirement_ids": [
+        "REQ-002"
+      ],
+      "depends_on": [
+        "TASK-002",
+        "TASK-004"
+      ],
+      "must_haves": [
+        "Control inputs map to legal state transitions with wall-kick-safe rotation semantics.",
+        "Scoring and line clear logic are deterministic and satisfy contract tests, including hold cooldown rules."
+      ],
+      "verify_commands": [
+        "npm run test:unit -- --run tests/unit/rules-scoring.spec.ts"
+      ],
+      "gaps_that_need_patching": [],
+      "verification_contract": {
+        "mode": "implementation_green",
+        "dev_expectation": "expect_pass",
+        "test_expectation": "expect_pass",
+        "review_expectation": "expect_pass",
+        "expected_failure_reason_codes": [
+          "regression_detected"
+        ],
+        "infra_failure_reason_codes": [
+          "verification_environment_error",
+          "verification_command_target_missing"
+        ]
+      }
+    },
+    {
+      "task_id": "TASK-006",
+      "title": "Implement web UI shell and integrate game loop with HUD, hold, and next panels",
+      "phase_id": "phase-3",
+      "lane_id": "phase-3/lane-a",
+      "status": "pending",
+      "requirement_ids": [
+        "REQ-003"
+      ],
+      "depends_on": [
+        "TASK-003",
+        "TASK-005"
+      ],
+      "must_haves": [
+        "The browser UI renders board and HUD from canonical game state with no hidden side effects.",
+        "Input handlers are integration-tested against deterministic state updates and pause/restart flows."
+      ],
+      "verify_commands": [
+        "npm run test:unit -- --run tests/unit/ui-integration.spec.ts"
+      ],
+      "gaps_that_need_patching": [],
+      "verification_contract": {
+        "mode": "implementation_green",
+        "dev_expectation": "expect_pass",
+        "test_expectation": "expect_pass",
+        "review_expectation": "expect_pass",
+        "expected_failure_reason_codes": [
+          "regression_detected"
+        ],
+        "infra_failure_reason_codes": [
+          "verification_environment_error",
+          "verification_command_target_missing"
+        ]
+      }
+    },
+    {
+      "task_id": "TASK-007",
+      "title": "Hardening: enforce regression and coverage gates across gameplay, rules, and UI integration",
+      "phase_id": "phase-4",
+      "lane_id": "phase-4/lane-a",
+      "status": "pending",
+      "requirement_ids": [
+        "REQ-004"
+      ],
+      "depends_on": [
+        "TASK-004",
+        "TASK-005",
+        "TASK-006"
+      ],
+      "must_haves": [
+        "Unit and integration test suites run in deterministic order with stable pass/fail outcomes.",
+        "Coverage thresholds and lint checks are wired into reproducible verification commands."
+      ],
+      "verify_commands": [
+        "npm run lint",
+        "npm run test:unit -- --run",
+        "npm run test:integration -- --run",
+        "npm run test:coverage"
+      ],
+      "gaps_that_need_patching": [],
+      "verification_contract": {
+        "mode": "hardening",
+        "dev_expectation": "expect_pass",
+        "test_expectation": "expect_pass",
+        "review_expectation": "expect_pass",
+        "expected_failure_reason_codes": [
+          "regression_detected"
+        ],
+        "infra_failure_reason_codes": [
+          "verification_environment_error",
+          "verification_command_target_missing"
+        ]
+      }
+    },
+    {
+      "task_id": "TASK-008",
+      "title": "Review hardening: execute Playwright UAT matrix and finalize MVP release readiness evidence",
+      "phase_id": "phase-4",
+      "lane_id": "phase-4/lane-b",
+      "status": "pending",
+      "requirement_ids": [
+        "REQ-004"
+      ],
+      "depends_on": [
+        "TASK-006",
+        "TASK-007"
+      ],
+      "must_haves": [
+        "Playwright scenarios validate gameplay loop, controls, scoring, line clear, and hold/next flows in browser.",
+        "Release-readiness evidence is persisted in planning artifacts with no unresolved blockers."
+      ],
+      "verify_commands": [
+        "npm run test:e2e -- --project=chromium",
+        "npm run test:smoke"
+      ],
+      "gaps_that_need_patching": [],
+      "verification_contract": {
+        "mode": "hardening",
+        "dev_expectation": "expect_pass",
+        "test_expectation": "expect_pass",
+        "review_expectation": "expect_pass",
+        "expected_failure_reason_codes": [
+          "regression_detected"
+        ],
+        "infra_failure_reason_codes": [
+          "verification_environment_error",
+          "verification_command_target_missing"
+        ]
+      }
+    }
+  ],
+  "depends_on": [],
+  "must_haves": [
+    "A deterministic browser-playable Tetris MVP is delivered with documented controls and scoring behavior.",
+    "Gameplay-critical logic is TDD-seeded and proven through implementation and hardening phases.",
+    "Verification and UAT evidence is complete enough for autonomous op-build execution."
+  ],
+  "verify_commands": [
+    "npm run lint",
+    "npm run test:unit -- --run",
+    "npm run test:e2e -- --project=chromium"
+  ]
+}
