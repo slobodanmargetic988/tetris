@@ -48,8 +48,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function parseNumber(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
+function parseNonNegativeInteger(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) && Number.isInteger(value) && value >= 0 ? value : null;
 }
 
 function parseEntry(value: unknown): PersistedLeaderboardEntry | null {
@@ -59,8 +59,8 @@ function parseEntry(value: unknown): PersistedLeaderboardEntry | null {
 
   const legacy = value as LegacyLeaderboardEntry;
   const playerName = typeof legacy.playerName === "string" ? legacy.playerName : typeof legacy.name === "string" ? legacy.name : null;
-  const score = parseNumber(legacy.score);
-  const lines = parseNumber(legacy.lines);
+  const score = parseNonNegativeInteger(legacy.score);
+  const lines = parseNonNegativeInteger(legacy.lines);
   const achievedAt =
     typeof legacy.achievedAt === "string"
       ? legacy.achievedAt
@@ -82,9 +82,9 @@ function parseEntry(value: unknown): PersistedLeaderboardEntry | null {
   };
 }
 
-function sanitizeEntries(value: unknown): { entries: PersistedLeaderboardEntry[]; dropped: number } {
+function sanitizeEntries(value: unknown): { entries: PersistedLeaderboardEntry[]; dropped: number; invalidContainer: boolean } {
   if (!Array.isArray(value)) {
-    return { entries: [], dropped: 0 };
+    return { entries: [], dropped: 0, invalidContainer: true };
   }
 
   const entries: PersistedLeaderboardEntry[] = [];
@@ -99,6 +99,7 @@ function sanitizeEntries(value: unknown): { entries: PersistedLeaderboardEntry[]
   return {
     entries,
     dropped: value.length - entries.length,
+    invalidContainer: false,
   };
 }
 
@@ -135,13 +136,13 @@ export function loadLeaderboardFromStorage(storage: KeyValueStorage, key = LEADE
     return { entries: [], corruptionRecovered: true };
   }
 
-  const schemaVersion = parseNumber(parsed.schemaVersion);
+  const schemaVersion = parseNonNegativeInteger(parsed.schemaVersion);
 
   if (schemaVersion === LOCAL_PERSISTENCE_SCHEMA_VERSION) {
     const current = sanitizeEntries(parsed.entries);
     return {
       entries: current.entries,
-      corruptionRecovered: current.dropped > 0,
+      corruptionRecovered: current.invalidContainer || current.dropped > 0,
     };
   }
 
