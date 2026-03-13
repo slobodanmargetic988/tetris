@@ -15,8 +15,26 @@ export interface ScoreSubmissionRecord {
   rank: number;
 }
 
+export interface LeaderboardEntry {
+  id: string;
+  rank: number;
+  playerName: string;
+  score: number;
+  lines: number;
+  level: number;
+}
+
 export interface PostGameFlowDeps {
   persistScore: (input: ScoreSubmissionInput) => Promise<ScoreSubmissionRecord>;
+}
+
+export interface LeaderboardViewState {
+  topTen: LeaderboardEntry[];
+  currentPlayerOutsideTopTen: LeaderboardEntry | null;
+}
+
+export interface PostGameCtaState {
+  canStartNewGame: boolean;
 }
 
 export interface PostGameFlowState {
@@ -24,6 +42,8 @@ export interface PostGameFlowState {
   runId: number;
   pendingTopOut: TopOutSnapshot | null;
   playerName: string;
+  leaderboard: LeaderboardViewState;
+  cta: PostGameCtaState;
   submission: {
     attempts: number;
     record: ScoreSubmissionRecord | null;
@@ -36,7 +56,7 @@ export interface PostGameFlowController {
   onTopOut: (snapshot: TopOutSnapshot) => PostGameFlowState;
   setPlayerName: (name: string) => PostGameFlowState;
   submitScore: () => Promise<PostGameFlowState>;
-  viewLeaderboard: () => PostGameFlowState;
+  viewLeaderboard: (entries?: LeaderboardEntry[]) => PostGameFlowState;
   startNewGame: (from: "results" | "leaderboard") => PostGameFlowState;
 }
 
@@ -52,11 +72,90 @@ export function createPostGameFlowController(
     submitted: false,
   });
 
+  const resetLeaderboardState = (): LeaderboardViewState => ({
+    topTen: [],
+    currentPlayerOutsideTopTen: null,
+  });
+
+  const ctaForPhase = (phase: PostGamePhase): PostGameCtaState => ({
+    canStartNewGame: phase === "results" || phase === "leaderboard",
+  });
+
+  const sortByRank = (entries: LeaderboardEntry[]): LeaderboardEntry[] =>
+    [...entries].sort((left, right) => left.rank - right.rank);
+
+  const findCurrentPlayerContext = (
+    entriesByRank: LeaderboardEntry[],
+    submittedRecord: ScoreSubmissionRecord | null,
+    playerName: string,
+    pendingTopOut: TopOutSnapshot | null,
+    topTen: LeaderboardEntry[],
+  ): LeaderboardEntry | null => {
+    if (!submittedRecord || submittedRecord.rank <= 10) {
+      return null;
+    }
+
+    const fromRows =
+      entriesByRank.find((entry) => entry.id === submittedRecord.id) ??
+      entriesByRank.find((entry) => entry.rank === submittedRecord.rank) ??
+      null;
+
+    const candidate =
+      fromRows ??
+      (pendingTopOut
+        ? {
+            id: submittedRecord.id,
+            rank: submittedRecord.rank,
+            playerName,
+            score: pendingTopOut.score,
+            lines: pendingTopOut.lines,
+            level: pendingTopOut.level,
+          }
+        : null);
+
+    if (!candidate) {
+      return null;
+    }
+
+    if (
+      topTen.some(
+        (entry) => entry.rank === candidate.rank && entry.id === candidate.id,
+      )
+    ) {
+      return null;
+    }
+
+    return candidate;
+  };
+
+  const deriveLeaderboardState = (
+    entries: LeaderboardEntry[],
+    submittedRecord: ScoreSubmissionRecord | null,
+    playerName: string,
+    pendingTopOut: TopOutSnapshot | null,
+  ): LeaderboardViewState => {
+    const entriesByRank = sortByRank(entries);
+    const topTen = entriesByRank.slice(0, 10);
+
+    return {
+      topTen,
+      currentPlayerOutsideTopTen: findCurrentPlayerContext(
+        entriesByRank,
+        submittedRecord,
+        playerName,
+        pendingTopOut,
+        topTen,
+      ),
+    };
+  };
+
   let state: PostGameFlowState = {
     phase: "playing",
     runId: 1,
     pendingTopOut: null,
     playerName: "",
+    leaderboard: resetLeaderboardState(),
+    cta: ctaForPhase("playing"),
     submission: resetSubmissionState(),
   };
   let submissionInFlight: Promise<PostGameFlowState> | null = null;
@@ -69,6 +168,8 @@ export function createPostGameFlowController(
         phase: "results",
         pendingTopOut: snapshot,
         playerName: "",
+        leaderboard: resetLeaderboardState(),
+        cta: ctaForPhase("results"),
         submission: resetSubmissionState(),
       };
       return state;
@@ -129,10 +230,17 @@ export function createPostGameFlowController(
         submissionInFlight = null;
       }
     },
-    viewLeaderboard: () => {
+    viewLeaderboard: (entries) => {
       state = {
         ...state,
         phase: "leaderboard",
+        leaderboard: deriveLeaderboardState(
+          entries ?? state.leaderboard.topTen,
+          state.submission.record,
+          state.playerName,
+          state.pendingTopOut,
+        ),
+        cta: ctaForPhase("leaderboard"),
       };
       return state;
     },
@@ -143,6 +251,8 @@ export function createPostGameFlowController(
         runId: state.runId + 1,
         pendingTopOut: null,
         playerName: "",
+        leaderboard: resetLeaderboardState(),
+        cta: ctaForPhase("playing"),
         submission: resetSubmissionState(),
       };
       return state;
