@@ -27,8 +27,13 @@ describe("TASK-017 runtime polish motion", () => {
       expect(plan.preserveBoardSnapshot).toBe(true);
       expect(plan.durationMs).toBeGreaterThan(0);
       expect(plan.steps).toHaveLength(3);
-      expect(plan.steps[1].incomingOpacity).toBeGreaterThan(0);
-      expect(plan.steps[1].outgoingOpacity).toBeLessThan(1);
+      const crossfadeStep = plan.steps[1];
+      expect(crossfadeStep).toBeDefined();
+      if (!crossfadeStep) {
+        throw new Error("Expected crossfade step for active transition");
+      }
+      expect(crossfadeStep.incomingOpacity).toBeGreaterThan(0);
+      expect(crossfadeStep.outgoingOpacity).toBeLessThan(1);
     }
   });
 

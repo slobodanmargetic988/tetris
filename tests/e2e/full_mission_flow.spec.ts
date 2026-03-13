@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 interface TransitionSnapshot {
   from: string;
@@ -528,7 +528,7 @@ function buildMissionHarnessHtml(): string {
 `;
 }
 
-async function getSnapshot(page: Parameters<typeof test>[0]["page"]): Promise<MissionSnapshot> {
+async function getSnapshot(page: Page): Promise<MissionSnapshot> {
   return page.evaluate(() => JSON.parse(window.render_game_to_text()));
 }
 
