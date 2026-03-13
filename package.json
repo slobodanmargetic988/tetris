@@ -1,0 +1,8 @@
+{
+  "name": "tetris-canary",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test:unit": "node tools/test_unit_runner.cjs"
+  }
+}
