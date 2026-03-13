@@ -1,0 +1,64 @@
+:root {
+  color-scheme: light;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at 20% 20%, #284a8a 0%, #131a2e 48%, #0b101d 100%);
+  color: #f4f6ff;
+}
+
+#app {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.runtime-shell {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(160px, 220px) auto;
+  align-items: start;
+}
+
+.hud {
+  border: 1px solid #7f9be1;
+  border-radius: 12px;
+  background: rgba(10, 16, 35, 0.82);
+  padding: 16px;
+}
+
+.hud h1 {
+  margin-top: 0;
+}
+
+.board {
+  width: min(70vmin, 420px);
+  aspect-ratio: 1 / 2;
+  display: grid;
+  place-items: stretch;
+  border: 2px solid #89a9f0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0d1324;
+  box-shadow: 0 16px 36px rgba(4, 7, 16, 0.5);
+}
+
+.board-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+@media (max-width: 840px) {
+  .runtime-shell {
+    grid-template-columns: 1fr;
+  }
+}
