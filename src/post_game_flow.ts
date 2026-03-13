@@ -43,17 +43,23 @@ export interface PostGameFlowController {
 export function createPostGameFlowController(
   deps: PostGameFlowDeps,
 ): PostGameFlowController {
+  const isValidPlayerName = (playerName: string): boolean =>
+    /^[a-zA-Z0-9][a-zA-Z0-9 _'-]{0,23}$/.test(playerName);
+
+  const resetSubmissionState = (): PostGameFlowState["submission"] => ({
+    attempts: 0,
+    record: null,
+    submitted: false,
+  });
+
   let state: PostGameFlowState = {
     phase: "playing",
     runId: 1,
     pendingTopOut: null,
     playerName: "",
-    submission: {
-      attempts: 0,
-      record: null,
-      submitted: false,
-    },
+    submission: resetSubmissionState(),
   };
+  let submissionInFlight: Promise<PostGameFlowState> | null = null;
 
   return {
     getState: () => state,
@@ -62,6 +68,8 @@ export function createPostGameFlowController(
         ...state,
         phase: "results",
         pendingTopOut: snapshot,
+        playerName: "",
+        submission: resetSubmissionState(),
       };
       return state;
     },
@@ -77,23 +85,49 @@ export function createPostGameFlowController(
         throw new Error("No finished run to submit");
       }
 
-      const record = await deps.persistScore({
-        playerName: state.playerName,
-        score: state.pendingTopOut.score,
-        lines: state.pendingTopOut.lines,
-        level: state.pendingTopOut.level,
-      });
+      if (state.submission.submitted) {
+        throw new Error("Score already submitted for this run");
+      }
+
+      const playerName = state.playerName.trim();
+      if (!isValidPlayerName(playerName)) {
+        throw new Error("Enter a valid player name before submitting");
+      }
+
+      if (submissionInFlight) {
+        return submissionInFlight;
+      }
 
       state = {
         ...state,
-        submission: {
-          attempts: state.submission.attempts + 1,
-          submitted: true,
-          record,
-        },
+        playerName,
       };
 
-      return state;
+      submissionInFlight = (async () => {
+        const record = await deps.persistScore({
+          playerName,
+          score: state.pendingTopOut!.score,
+          lines: state.pendingTopOut!.lines,
+          level: state.pendingTopOut!.level,
+        });
+
+        state = {
+          ...state,
+          submission: {
+            attempts: state.submission.attempts + 1,
+            submitted: true,
+            record,
+          },
+        };
+
+        return state;
+      })();
+
+      try {
+        return await submissionInFlight;
+      } finally {
+        submissionInFlight = null;
+      }
     },
     viewLeaderboard: () => {
       state = {
@@ -107,6 +141,9 @@ export function createPostGameFlowController(
         ...state,
         phase: "playing",
         runId: state.runId + 1,
+        pendingTopOut: null,
+        playerName: "",
+        submission: resetSubmissionState(),
       };
       return state;
     },
