@@ -16,15 +16,38 @@ export interface ProgressState {
   board: Board;
   totalLinesCleared: number;
   spawnLegal: boolean;
+  score?: number;
+  softDropCells?: number;
+  hardDropCells?: number;
 }
 
 export interface ProgressResult {
   board: Board;
   totalLinesCleared: number;
   topOut: boolean;
+  clearedLines: number;
+  level: number;
+  score: number;
+  lineClearScore: number;
+  dropScore: number;
+  lockDelayMs: number;
 }
 
 const PIECE_SEQUENCE: PieceKind[] = ["I", "J", "L", "O", "S", "T", "Z"];
+const LINE_CLEAR_BASE_SCORES: Readonly<Record<number, number>> = {
+  0: 0,
+  1: 100,
+  2: 300,
+  3: 500,
+  4: 800,
+};
+
+export const LINES_PER_LEVEL = 10;
+export const SOFT_DROP_POINTS_PER_CELL = 1;
+export const HARD_DROP_POINTS_PER_CELL = 2;
+export const LOCK_DELAY_BASE_MS = 500;
+export const LOCK_DELAY_STEP_MS = 20;
+export const LOCK_DELAY_MIN_MS = 120;
 
 const SPAWN_FOOTPRINTS: Record<PieceKind, ReadonlyArray<readonly [number, number]>> = {
   I: [
@@ -103,6 +126,14 @@ function clearCompletedLines(board: Board): { board: Board; clearedLines: number
   };
 }
 
+function normalizeNonNegativeInt(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor(value));
+}
+
 function seededHash(seed: string): () => number {
   let hash = 1779033703 ^ seed.length;
   for (let i = 0; i < seed.length; i += 1) {
@@ -153,7 +184,7 @@ export function generateDeterministicBagQueue(
   seed: string,
   pieceCount: number,
 ): PieceKind[] {
-  const normalizedCount = Number.isFinite(pieceCount) ? Math.max(0, Math.floor(pieceCount)) : 0;
+  const normalizedCount = normalizeNonNegativeInt(pieceCount);
   if (normalizedCount === 0) {
     return [];
   }
@@ -183,16 +214,56 @@ export function generateDeterministicBagQueue(
   return queue;
 }
 
+export function getLevelFromLines(totalLinesCleared: number): number {
+  const normalizedLines = normalizeNonNegativeInt(totalLinesCleared);
+  return Math.floor(normalizedLines / LINES_PER_LEVEL) + 1;
+}
+
+export function getLockDelayMsForLevel(level: number): number {
+  const normalizedLevel = Math.max(1, normalizeNonNegativeInt(level));
+  const scaledDelay = LOCK_DELAY_BASE_MS - (normalizedLevel - 1) * LOCK_DELAY_STEP_MS;
+  return Math.max(LOCK_DELAY_MIN_MS, scaledDelay);
+}
+
+export function getLineClearScore(linesCleared: number, level: number): number {
+  const normalizedLines = Math.min(4, normalizeNonNegativeInt(linesCleared));
+  const normalizedLevel = Math.max(1, normalizeNonNegativeInt(level));
+  const baseScore = LINE_CLEAR_BASE_SCORES[normalizedLines] ?? 0;
+  return baseScore * normalizedLevel;
+}
+
+export function getDropScore(softDropCells: number, hardDropCells: number): number {
+  const normalizedSoftDropCells = normalizeNonNegativeInt(softDropCells);
+  const normalizedHardDropCells = normalizeNonNegativeInt(hardDropCells);
+
+  return (
+    normalizedSoftDropCells * SOFT_DROP_POINTS_PER_CELL +
+    normalizedHardDropCells * HARD_DROP_POINTS_PER_CELL
+  );
+}
+
 export function resolvePostLockProgress(state: ProgressState): ProgressResult {
   const board = coerceBoardState(state.board);
   const { board: postClearBoard, clearedLines } = clearCompletedLines(board);
-  const normalizedLines = Number.isFinite(state.totalLinesCleared)
-    ? Math.max(0, Math.floor(state.totalLinesCleared))
-    : 0;
+  const normalizedLines = normalizeNonNegativeInt(state.totalLinesCleared);
+  const normalizedScore = normalizeNonNegativeInt(state.score ?? 0);
+  const previousLevel = getLevelFromLines(normalizedLines);
+  const lineClearScore = getLineClearScore(clearedLines, previousLevel);
+  const dropScore = getDropScore(state.softDropCells ?? 0, state.hardDropCells ?? 0);
+  const totalLinesCleared = normalizedLines + clearedLines;
+  const level = getLevelFromLines(totalLinesCleared);
+  const lockDelayMs = getLockDelayMsForLevel(level);
+  const score = normalizedScore + lineClearScore + dropScore;
 
   return {
     board: postClearBoard,
-    totalLinesCleared: normalizedLines + clearedLines,
+    totalLinesCleared,
     topOut: !state.spawnLegal,
+    clearedLines,
+    level,
+    score,
+    lineClearScore,
+    dropScore,
+    lockDelayMs,
   };
 }
