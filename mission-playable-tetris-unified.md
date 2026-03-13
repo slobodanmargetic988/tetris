@@ -46,6 +46,7 @@ The shipped game must let a player:
   - mute toggle,
   - graceful fallback when assets fail or autoplay is blocked.
 - Record audio asset license metadata when audio ships.
+- Track current audio legal status in [legal/audio-license-metadata.md](legal/audio-license-metadata.md).
 
 ## Guardrails
 

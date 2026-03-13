@@ -75,6 +75,8 @@ Ship a production-like browser Tetris experience with:
 43. Provide audio controls: master volume, music volume, sfx volume, mute toggle.
 44. Handle autoplay restrictions and asset-load failures gracefully without blocking gameplay.
 
+Current legal metadata/defer record: [legal/audio-license-metadata.md](legal/audio-license-metadata.md).
+
 ### G) Testability, Automation, and Evidence (2 tasks)
 
 45. Reintroduce/maintain deterministic automation hooks (`window.render_game_to_text` and deterministic stepping hook).
