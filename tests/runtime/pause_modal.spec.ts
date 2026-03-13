@@ -25,7 +25,7 @@ function createKeyEvent(key, shiftKey = false) {
 }
 
 describe('pause modal runtime behavior', () => {
-  test('traps focus and keeps keyboard Enter/Space parity with pointer actions', () => {
+  test('traps focus and enforces one handled action per open cycle', () => {
     const focusLog = [];
     const actionLog = [];
     const resumeButton = createFocusableAction('resume', focusLog);
@@ -63,17 +63,20 @@ describe('pause modal runtime behavior', () => {
     expect(modal.handleKeydown(enterEvent)).toBe(true);
     expect(enterEvent.prevented).toBe(true);
 
-    expect(modal.handlePointerAction('resume')).toBe(true);
+    expect(modal.handlePointerAction('resume')).toBe(false);
 
     const spaceEvent = createKeyEvent(' ');
-    expect(modal.handleKeydown(spaceEvent)).toBe(true);
+    expect(modal.handleKeydown(spaceEvent)).toBe(false);
     expect(spaceEvent.prevented).toBe(true);
 
+    modal.close();
+    modal.open({
+      focusableElements: [resumeButton, resetButton],
+      initialAction: 'resume'
+    });
     expect(modal.handlePointerAction('resume')).toBe(true);
     expect(actionLog).toEqual([
       { actionId: 'resume', source: 'keyboard', event: enterEvent },
-      { actionId: 'resume', source: 'pointer', event: undefined },
-      { actionId: 'resume', source: 'keyboard', event: spaceEvent },
       { actionId: 'resume', source: 'pointer', event: undefined }
     ]);
   });

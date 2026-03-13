@@ -147,6 +147,22 @@ function createPauseRuntimeController() {
       paused = false;
       return true;
     },
+    reset(state, nextState) {
+      if (
+        !state ||
+        typeof state !== 'object' ||
+        !nextState ||
+        typeof nextState !== 'object'
+      ) {
+        return false;
+      }
+
+      restoreSnapshot(state, nextState);
+      state.paused = false;
+      runtimeSnapshot = null;
+      paused = false;
+      return true;
+    },
     isPaused() {
       return paused;
     },
@@ -174,6 +190,7 @@ function createPauseModalController(options = {}) {
   let focusableElements = sanitizeFocusableElements(options.focusableElements);
   let focusedIndex = -1;
   let lastAction = null;
+  let actionLocked = false;
 
   function hasKnownAction(actionId) {
     if (!actionId) {
@@ -217,6 +234,10 @@ function createPauseModalController(options = {}) {
   }
 
   function activateAction(actionId, source, event) {
+    if (actionLocked) {
+      return false;
+    }
+
     const normalizedActionId = normalizeActionId(actionId);
     if (!normalizedActionId) {
       return false;
@@ -238,6 +259,10 @@ function createPauseModalController(options = {}) {
     if (typeof actionHandlers[normalizedActionId] === 'function') {
       actionHandlers[normalizedActionId](payload);
       handled = true;
+    }
+
+    if (handled) {
+      actionLocked = true;
     }
 
     return handled;
@@ -267,6 +292,7 @@ function createPauseModalController(options = {}) {
       }
 
       active = true;
+      actionLocked = false;
 
       if (focusableElements.length > 0) {
         const initialActionId = normalizeActionId(
@@ -288,6 +314,7 @@ function createPauseModalController(options = {}) {
     close() {
       active = false;
       focusedIndex = -1;
+      actionLocked = false;
       return true;
     },
     isOpen() {
