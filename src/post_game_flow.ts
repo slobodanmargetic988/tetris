@@ -158,11 +158,18 @@ export function createPostGameFlowController(
     cta: ctaForPhase("playing"),
     submission: resetSubmissionState(),
   };
-  let submissionInFlight: Promise<PostGameFlowState> | null = null;
+  let submissionInFlight:
+    | {
+        runId: number;
+        pendingTopOut: TopOutSnapshot;
+        promise: Promise<PostGameFlowState>;
+      }
+    | null = null;
 
   return {
     getState: () => state,
     onTopOut: (snapshot) => {
+      submissionInFlight = null;
       state = {
         ...state,
         phase: "results",
@@ -195,8 +202,15 @@ export function createPostGameFlowController(
         throw new Error("Enter a valid player name before submitting");
       }
 
-      if (submissionInFlight) {
-        return submissionInFlight;
+      const runId = state.runId;
+      const pendingTopOut = state.pendingTopOut;
+
+      if (submissionInFlight && submissionInFlight.runId === runId) {
+        return submissionInFlight.promise;
+      }
+
+      if (submissionInFlight && submissionInFlight.runId !== runId) {
+        submissionInFlight = null;
       }
 
       state = {
@@ -204,30 +218,45 @@ export function createPostGameFlowController(
         playerName,
       };
 
-      submissionInFlight = (async () => {
-        const record = await deps.persistScore({
-          playerName,
-          score: state.pendingTopOut!.score,
-          lines: state.pendingTopOut!.lines,
-          level: state.pendingTopOut!.level,
-        });
+      const inFlight = {
+        runId,
+        pendingTopOut,
+        promise: (async () => {
+          const record = await deps.persistScore({
+            playerName,
+            score: pendingTopOut.score,
+            lines: pendingTopOut.lines,
+            level: pendingTopOut.level,
+          });
 
-        state = {
-          ...state,
-          submission: {
-            attempts: state.submission.attempts + 1,
-            submitted: true,
-            record,
-          },
-        };
+          if (
+            state.runId !== runId ||
+            state.pendingTopOut !== pendingTopOut ||
+            state.phase === "playing"
+          ) {
+            return state;
+          }
 
-        return state;
-      })();
+          state = {
+            ...state,
+            submission: {
+              attempts: state.submission.attempts + 1,
+              submitted: true,
+              record,
+            },
+          };
+
+          return state;
+        })(),
+      };
+      submissionInFlight = inFlight;
 
       try {
-        return await submissionInFlight;
+        return await inFlight.promise;
       } finally {
-        submissionInFlight = null;
+        if (submissionInFlight === inFlight) {
+          submissionInFlight = null;
+        }
       }
     },
     viewLeaderboard: (entries) => {
@@ -245,6 +274,7 @@ export function createPostGameFlowController(
       return state;
     },
     startNewGame: (_from) => {
+      submissionInFlight = null;
       state = {
         ...state,
         phase: "playing",
