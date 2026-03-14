@@ -26,3 +26,4 @@
 # END OPTIMUS-PRIME MANAGED REPORT IGNORES
 /node_modules/
 coverage/
+/.op-simple
