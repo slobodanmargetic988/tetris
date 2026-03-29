@@ -1,8 +1,8 @@
-const {
+import {
   createPauseModalController,
   createPauseRuntimeController
-} = require('../../src/runtime/pause_modal.ts');
-const { createKeyboardController } = require('../../src/input/input_contract.ts');
+} from '../../src/runtime/pause_modal.ts';
+import { createKeyboardController } from '../../src/input/input_contract.ts';
 
 function createFocusableAction(actionId, focusLog) {
   return {

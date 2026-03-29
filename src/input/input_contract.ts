@@ -276,7 +276,7 @@ function createKeyboardController(options = {}) {
   };
 }
 
-module.exports = {
+export {
   ACTION_FOR_KEY,
   KEYBOARD_ACTIONS,
   DEFAULT_BURST_GUARD_MS,

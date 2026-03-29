@@ -1,9 +1,9 @@
-const {
+import {
   ACTION_FOR_KEY,
   KEYBOARD_ACTIONS,
   applyGameplayInput,
   createKeyboardController
-} = require('../../src/input/input_contract.ts');
+} from '../../src/input/input_contract.ts';
 
 describe('runtime keyboard controller', () => {
   test('maps Arrow and WASD controls to identical runtime actions', () => {

@@ -390,7 +390,7 @@ function createPauseModalController(options = {}) {
   };
 }
 
-module.exports = {
+export {
   createPauseModalController,
   createPauseRuntimeController,
   normalizeActionId
