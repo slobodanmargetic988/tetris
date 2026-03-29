@@ -19,3 +19,7 @@
 - `tester`: capture runnable proof, artifacts, and failure notes that help diagnose orchestration regressions.
 - `reviewer`: flag conclusions that over-generalize from canary behavior into Earth-wide product decisions.
 - `documenter`: add durable canary lessons here when they would help future validation runs.
+## Agent Escalation and Envelopes (Mandatory)
+- While working in this repo, agents should think carefully about the work they are doing and actively surface any problems they encounter.
+- If an agent hits a blocker, ambiguity, or environment issue, report it to `/Users/slobodan/projects/Earth/ground-control-hub/` as Ground.
+- Ground should also be able to ingest lightweight agent envelopes with suggestions for tools, workflows, or repo changes that would make future work easier.
