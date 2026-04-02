@@ -1,0 +1,23 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Tetris Minotaur mythic logo</title>
+  <desc id="desc">A mythic emblem for Tetris, themed around a Minotaur.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4b1d1d"/>
+      <stop offset="100%" stop-color="#8f2b2b"/>
+    </linearGradient>
+    <linearGradient id="flare" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.15"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="8" y="8" width="240" height="240" rx="44" fill="url(#bg)"/>
+  <circle cx="128" cy="128" r="90" fill="#0d1526" fill-opacity="0.28"/>
+  <circle cx="128" cy="128" r="85" fill="none" stroke="#ffd6a5" stroke-width="5"/>
+
+  <path d="M72 94 C84 70 104 62 128 76 C152 62 172 70 184 94 C196 88 206 96 208 112 C194 108 180 110 170 120 C176 132 178 146 174 160 C160 148 146 142 128 142 C110 142 96 148 82 160 C78 146 80 132 86 120 C76 110 62 108 48 112 C50 96 60 88 72 94 Z" fill="url(#flare)" stroke="#ffe7cc" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <text x="128" y="146" text-anchor="middle" fill="#f8fbff" font-size="44" font-family="'Avenir Next', 'Segoe UI', Arial, sans-serif" font-weight="800" letter-spacing="2">TR</text>
+  <text x="128" y="210" text-anchor="middle" fill="#f6f8ff" font-size="17" font-family="'Avenir Next', 'Segoe UI', Arial, sans-serif" letter-spacing="1">Minotaur</text>
+</svg>
